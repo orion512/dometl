@@ -9,9 +9,9 @@ import os
 import argparse
 import logging
 from typing import Callable
-from datetime import date
 
-from dometl.settings import Settings
+from dometl.settings import Settings, InLine
+from dometl.config import ConfigInit
 
 
 logger = logging.getLogger(__name__)
@@ -34,52 +34,45 @@ def run_dometl() -> None:
         "--type",
         help="""
         Specifcy type of scraping (
+            init - initializes the database/tables/SPs,
             cdc - for change data capture (first file alphabetically),
             full - for a full load,
+            live - staging to live SQL transformation,
+            livep - staging to live python transformation (FUTURE)
         )
         """,
-        choices=["g", "gu", "t", "p", "gs", "gsu", "gp", "gpu"],
+        choices=["init", "cdc", "full", "live", "livep"],
         type=str,
     )
 
 
     parser.add_argument(
-        "-n",
-        "--namechar",
+        "-ep",
+        "--extract_path",
         help="""
-        If type of scraping is p (players) then
-        this parameter specifies the first letter
-        of the last name to scrape.
-        The script will scrape all players matching the criteria.
-        If the parameter is set to all, then all characters will be scraped.
-        By default the parameter is set to all.
+        path to the folder from where to extract the data.
         """,
-        default="all",
+        default="",
         type=str,
     )
 
     parser.add_argument(
-        "-y",
-        "--year",
+        "-tb",
+        "--table",
         help="""
-        If type of scraping is (gs) or (gp) (games by season/playoffs) then
-        this parameter specifies the year of the season/playoffs.
-        The year needs to match the ending year of the season.
-        Example 2005/06 -> 2006.
-        By default it will be set to the current year.
+        Name of the database table into which to load the data.
         """,
-        default=date.today().year,
-        type=int,
+        required=True,
+        type=str,
     )
 
     parser.add_argument(
-        "-fp",
-        "--file_path",
+        "-cp",
+        "--config_path",
         help="""
-        This parameter specifies path where to save the file.
-        By default it will be set to the root of the project.
+        Path to the dometl config folder.
         """,
-        default="datasets",
+        default="dometl_config",
         type=str,
     )
 
@@ -93,149 +86,70 @@ def main(args: argparse.Namespace) -> None:
 
     in_line = InLine(
         type=args.type,
-        date=args.date,
-        namechar=args.namechar,
-        year=args.year,
-        file_path=args.file_path,
-        proxy=args.proxy,
+        extract_path=args.extract_path,
+        table=args.table,
+        config_path=args.config_path
     )
 
     settings = Settings(in_line=in_line)
 
-    # 1. Run the data collection
-    collected = run_data_collection_manager(settings)
-
-    # 2. Run the data saver
-    run_data_saving_manager(settings, collected)
+    run_etl_manager(settings)
 
 
-## Data Collection Functions
+## ETL Functions
 
+def run_etl_manager(settings: Settings) -> list:
+    """This function runs the selected mode of etl"""
 
-def run_data_collection_manager(settings: Settings) -> list:
-    """This function runs the selected mode of collection"""
+    logger.info("Started the etl manager")
 
-    logger.info("Started the data collection manager")
-
-    collection_modes: dict[str, Callable] = {
-        "g": run_daily_game_collector,
-        "gu": run_daily_game_collector,
-        "t": run_team_collector,
-        "p": run_player_collector,
-        "gs": run_season_games_collector,
-        "gsu": run_season_games_collector,
-        "gp": run_playoffs_game_collector,
-        "gpu": run_playoffs_game_collector,
+    etl_modes: dict[str, Callable] = {
+        "init": run_etl_init,
+        "cdc": run_etl_cdc,
+        "full": run_etl_full,
+        "live": run_etl_live,
+        "livep": run_etl_live_py,
     }
 
-    if settings.in_line.type not in collection_modes:
-        raise IllegalArgumentError(
+    if settings.in_line.type not in etl_modes:
+        raise ValueError(
             f"{settings.in_line.type} is not a valid value for the type ",
-            "(-t) argument. Choose one of the following: g, t, p, gs, gp.",
+            "(-t) argument. "
+            "Choose one of the following: init, cdc, full, live, livep",
         )
 
-    return collection_modes[settings.in_line.type](settings)
+    return etl_modes[settings.in_line.type](settings)
 
 
-def run_daily_game_collector(settings: Settings) -> list:
-    """
-    This function orchestrates the collection of NBA games on
-    a specific day.
-    """
+def run_etl_init(settings: Settings) -> list:
+    """ This function orchestrates the initialization of the ETL """
 
-    logger.info("DAILY GAME COLLECTOR MODE")
-    logger.info(f"Collecting all games for: {settings.in_line.date}")
+    logger.info("ETL INIT MODE")
 
-    # 1. Get all the game urls for the specific day
-    url_scraper = dometlUrlScraper(settings.in_line.proxy)
-    game_urls = url_scraper.get_game_urls_day(settings.in_line.date)
-    logger.info(f"Scraped {len(game_urls)} game urls")
-
-    if settings.in_line.type == "gu":
-        return [{"url": url} for url in game_urls]
+    # 1. Read Init Config
+    init_config = ConfigInit(settings.in_line.config_path)
+    logger.info(f"Read the init config")
 
     # 2. Get the game data for the list of games
-    data_scraper = dometlDataScraper(settings.in_line.proxy)
-    game_data = data_scraper.get_games_data(game_urls)
-    logger.info(f"Scraped {len(game_data)} games")
-
-    return game_data
+    # TODO: run the queries
+    logger.info(f"Initialized the database {'name'} and created {4} tables")
 
 
-def run_team_collector():
-    """This function orchestrates the collection of all NBA teams"""
+def run_etl_cdc():
+    """This function runs the ETL with Change Data Capture"""
     raise NotImplementedError
 
 
-def run_player_collector():
-    """This function orchestrates the collection of all NBA players"""
+def run_etl_full():
+    """This function runs the ETL for the entire dataset load"""
     raise NotImplementedError
 
 
-def run_season_games_collector(settings: Settings) -> list:
-    """Orchestrates the collection of all games in a season"""
-
-    logger.info("SEASON GAME COLLECTOR MODE")
-    logger.info(f"Collecting all games for: {settings.in_line.year}")
-
-    # 1. Get all the game urls for the specific year
-    url_scraper = dometlUrlScraper(settings.in_line.proxy)
-    game_urls = url_scraper.get_game_urls_year(settings.in_line.year)
-    logger.info(f"Scraped {len(game_urls)} game urls")
-
-    if settings.in_line.type == "gsu":
-        return [{"url": url} for url in game_urls]
-
-    # 2. Get the game data for the list of games
-    data_scraper = dometlDataScraper(settings.in_line.proxy)
-    game_data = data_scraper.get_games_data(game_urls)
-    logger.info(f"Scraped {len(game_data)} games")
-
-    return game_data
+def run_etl_live():
+    """This function runs the ETL to transform ST to live with SQL"""
+    raise NotImplementedError
 
 
-def run_playoffs_game_collector(settings: Settings) -> list:
-    """Orchestrates the collection of all games in a playoff"""
-
-    logger.info("PLAYOFF GAME COLLECTOR MODE")
-    logger.info(f"Collecting all games for: {settings.in_line.year} playoffs")
-
-    # 1. Get all the game urls for the specific postseason
-    url_scraper = dometlUrlScraper(settings.in_line.proxy)
-    game_urls = url_scraper.get_game_urls_playoffs(settings.in_line.year)
-    logger.info(f"Scraped {len(game_urls)} game urls")
-
-    if settings.in_line.type == "gpu":
-        return [{"url": url} for url in game_urls]
-
-    # 2. Get the game data for the list of games
-    data_scraper = dometlDataScraper(settings.in_line.proxy)
-    game_data = data_scraper.get_games_data(game_urls)
-    logger.info(f"Scraped {len(game_data)} games")
-
-    return game_data
-
-
-## Data Saving Functions
-
-
-def run_data_saving_manager(settings: Settings, coll_data: list) -> None:
-    """Integration function which runs the saving of the data"""
-
-    saving_prefix_options: dict[str, str] = {
-        "g": settings.in_line.date.strftime("%Y%m%d"),
-        "gu": settings.in_line.date.strftime("%Y%m%d"),
-        "t": "teams",
-        "p": settings.in_line.namechar,
-        "gs": str(settings.in_line.year),
-        "gsu": str(settings.in_line.year),
-        "gp": str(settings.in_line.year),
-        "gpu": str(settings.in_line.year),
-    }
-
-    chosen_prefix = saving_prefix_options[settings.in_line.type]
-    file_name = f"{chosen_prefix}_{settings.in_line.type}.csv"
-
-    save_path = os.path.join(settings.in_line.file_path, file_name)
-    save_file_from_list(coll_data, save_path)
-    logger.info(f"Saved the file to: {save_path}")
+def run_etl_live_py():
+    """This function runs the ETL to transform ST to live with python"""
+    raise NotImplementedError
