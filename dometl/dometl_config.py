@@ -7,10 +7,10 @@ Author: Dominik Zulovec Sajovic, November 2022
 
 import os
 from dataclasses import dataclass
+import yaml
 
-@dataclass
-class DBCreds:
-    db_name: str
+from dometl.db_utils import DBCreds
+
 
 @dataclass
 class DometlConfig():
@@ -19,7 +19,7 @@ class DometlConfig():
     config_path: str
     db_credentials: DBCreds
     init_order: list[str]
-    table_transformations: dict[str, tuple[str, str]]
+    table_to_live: dict[str, tuple[str, str]]
     transformations: dict[str, str]
 
     def __post_init__(self):
@@ -29,6 +29,15 @@ class DometlConfig():
         Provided the structure and naming is correct.
         """
 
+        config_yaml_path = os.path.join(self.config_path, "config.yaml")
+
+        with open(config_yaml_path, 'r') as yaml_file:
+            read_config = yaml.safe_load(yaml_file)
+        
+        # TODO: parse yaml to get db_creds, init_order, table_to live
+        # TODO: loop through all non yaml files in config
+        # TODO: read all into self.transformations dictionary dict[file_name] = contents
+        
         init_files = self._files(self.sub_folder_name)
 
         self.db_create = self._file_contents(
