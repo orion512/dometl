@@ -1,7 +1,6 @@
 # DOMETL (Python ETL Tool)
 Dometl is a Python ETL package.
 
-
 ## Process
 
 CSV -> Staging Table

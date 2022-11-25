@@ -11,7 +11,7 @@ import logging
 from typing import Callable
 
 from dometl.settings import Settings, InLine
-from dometl.config import ConfigInit
+from dometl.config import DometlConfig
 
 
 logger = logging.getLogger(__name__)
@@ -37,14 +37,12 @@ def run_dometl() -> None:
             init - initializes the database/tables/SPs,
             cdc - for change data capture (first file alphabetically),
             full - for a full load,
-            live - staging to live SQL transformation,
-            livep - staging to live python transformation (FUTURE)
+            live - staging to live SQL transformation
         )
         """,
-        choices=["init", "cdc", "full", "live", "livep"],
+        choices=["init", "cdc", "full", "live"],
         type=str,
     )
-
 
     parser.add_argument(
         "-ep",
@@ -62,7 +60,7 @@ def run_dometl() -> None:
         help="""
         Name of the database table into which to load the data.
         """,
-        required=True,
+        default=None,
         type=str,
     )
 
@@ -108,7 +106,6 @@ def run_etl_manager(settings: Settings) -> list:
         "cdc": run_etl_cdc,
         "full": run_etl_full,
         "live": run_etl_live,
-        "livep": run_etl_live_py,
     }
 
     if settings.in_line.type not in etl_modes:
@@ -127,9 +124,10 @@ def run_etl_init(settings: Settings) -> list:
     logger.info("ETL INIT MODE")
 
     # 1. Read Init Config
-    init_config = ConfigInit(settings.in_line.config_path)
+    init_config = DometlConfig(settings.in_line.config_path)
     logger.info(f"Read the init config")
 
+    print(init_config.transformations['db_create.sql'])
     # 2. Get the game data for the list of games
     # TODO: run the queries
     logger.info(f"Initialized the database {'name'} and created {4} tables")
@@ -147,9 +145,4 @@ def run_etl_full():
 
 def run_etl_live():
     """This function runs the ETL to transform ST to live with SQL"""
-    raise NotImplementedError
-
-
-def run_etl_live_py():
-    """This function runs the ETL to transform ST to live with python"""
     raise NotImplementedError
