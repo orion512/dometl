@@ -35,12 +35,11 @@ def run_dometl() -> None:
         help="""
         Specifcy type of scraping (
             init - initializes the database/tables/SPs,
-            cdc - for change data capture (first file alphabetically),
-            full - for a full load,
+            stage - loads files into a table (dir or file)
             live - staging to live SQL transformation
         )
         """,
-        choices=["init", "cdc", "full", "live"],
+        choices=["init", "stage", "live"],
         type=str,
     )
 
@@ -103,8 +102,7 @@ def run_etl_manager(settings: Settings) -> list:
 
     etl_modes: dict[str, Callable] = {
         "init": run_etl_init,
-        "cdc": run_etl_cdc,
-        "full": run_etl_full,
+        "stage": run_etl_stage,
         "live": run_etl_live,
     }
 
@@ -127,19 +125,13 @@ def run_etl_init(settings: Settings) -> list:
     init_config = DometlConfig(settings.in_line.config_path)
     logger.info(f"Read the init config")
 
-    print(init_config.transformations['db_create.sql'])
-    # 2. Get the game data for the list of games
-    # TODO: run the queries
-    logger.info(f"Initialized the database {'name'} and created {4} tables")
+    # 2. Run the init order queries
+
+    logger.info(f"Initialization done: ({len(init_config.init_order)})")
 
 
-def run_etl_cdc():
+def run_etl_stage():
     """This function runs the ETL with Change Data Capture"""
-    raise NotImplementedError
-
-
-def run_etl_full():
-    """This function runs the ETL for the entire dataset load"""
     raise NotImplementedError
 
 

@@ -1,4 +1,11 @@
-from dataclasses import dataclass
+"""
+This file contains the module for databse utilities
+"""
+
+from dataclasses import dataclass, field
+
+import psycopg2
+import psycopg2.extras
 
 
 @dataclass
@@ -11,30 +18,29 @@ class DBCreds:
     db_name: str
 
 
-# class TrinoConnectionHandler:
-#     """Trino Connection Handler as a context manager"""
+@dataclass
+class DBHandler():
+    """ This class is a context manager wrapper for a postgres DB. """
 
-#     def __init__(self, conn_details: TrinoConnDetails):
-#         self.conn_details = conn_details
-#         self.conn = None
-#         self.cur = None
+    db_credentials: DBCreds
+    conn: psycopg2.connection = field(init=False) 
+    cur: psycopg2.cursor = field(init=False) 
 
-#     def __enter__(self):
-#         self.conn = trino.dbapi.connect(
-#             host=self.conn_details.hostname,
-#             port=self.conn_details.port,
-#             user=self.conn_details.username,
-#             catalog=self.conn_details.catalog,
-#             schema=self.conn_details.schema,
-#             http_scheme="https",
-#             auth=trino.auth.BasicAuthentication(
-#                 self.conn_details.username, self.conn_details.password
-#             ),
-#         )
 
-#         self.cur = self.conn.cursor()
-#         return self.cur
+    def __enter__(self):
+        """ This function gets invoked at the start of a with statement """
+        self.conn = psycopg2.connect(
+            dbname=self.db_credentials.db_name,
+            user=self.db_credentials.username,
+            password=self.db_credentials.password,
+            host=self.db_credentials.hostname,
+        )
+        self.conn.set_session(autocommit=True)
+        self.cur = self.conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
 
-#     def __exit__(self, exc_type, exc_val, exc_tb):
-#         self.cur.close()
-#         self.conn.close()
+        return self.cur
+
+    def __exit__(self, exc_type, ex_value, ex_traceback):
+        """ This function gets invoked at the end of the with statement """
+        self.cur.close()
+        self.conn.close()
