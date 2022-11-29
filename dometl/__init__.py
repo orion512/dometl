@@ -12,6 +12,7 @@ from typing import Callable
 
 from dometl.settings import Settings, InLine
 from dometl.config import DometlConfig
+from dometl.etl_runner import ETLRunner
 
 
 logger = logging.getLogger(__name__)
@@ -126,7 +127,9 @@ def run_etl_init(settings: Settings) -> list:
     logger.info(f"Read the init config")
 
     # 2. Run the init order queries
-
+    etl_runner = ETLRunner(init_config.db_credentials)
+    queries = [init_config.sqls[name] for name in init_config.init_order]
+    etl_runner.run_queries(queries)
     logger.info(f"Initialization done: ({len(init_config.init_order)})")
 
 

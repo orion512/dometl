@@ -19,21 +19,34 @@ class ETLRunner():
     db_credentials: DBCreds
 
     def run_queries(self, list_of_queries: list[str]):
-        pass
+        """ Runs a list of queries in order """
+        
+        for query in list_of_queries:
+            self.run_query(query)
 
-    def run_staging_query(self, path_extract: str, table_name: str) -> int:
-        """
-        ......
-        """
+    def run_query(self, query: str):
+        """ Runs a single query """
 
         with DBHandler(self.db_credentials) as cur:
+            cur.execute(query)
 
-            path_to_csv = 'C:\\Users\\Dominik\\Documents\\Projects\\dometl\\datasets\\game_data\\daily\\20221105_g.csv'
-            with open(path_to_csv, "r") as f:
-                cur.copy_from(f, "st_game", sep=',')
+    def handle_staging(self, path: str, table_name: str):
+        """ runs run_staging if path is a file or a dir """
+        if os.path.isdir(path):
+            for file in os.listdir(path):
+                full_file_path = os.path.join(path, file)
+                self.run_staging(full_file_path, table_name)
+        elif os.path.isfile(path):
+            self.run_staging(path, table_name)
 
-            cur.execute("SELECT COUNT(id) FROM nba.game")
-            res = cur.fetchall()
+
+    def run_staging(self, file_path: str, table_name: str) -> int:
+        """ Copies a CSV file into a SQL table """
+
+        with DBHandler(self.db_credentials) as cur:
+            with open(file_path, "r") as f:
+                cur.copy_from(f, table_name, sep=',')
+
 
     def _collect_queries():
         """ """

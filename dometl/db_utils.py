@@ -7,6 +7,8 @@ from dataclasses import dataclass, field
 import psycopg2
 import psycopg2.extras
 
+from psycopg2._psycopg import connection, cursor
+
 
 @dataclass
 class DBCreds:
@@ -23,8 +25,8 @@ class DBHandler():
     """ This class is a context manager wrapper for a postgres DB. """
 
     db_credentials: DBCreds
-    conn: psycopg2.connection = field(init=False) 
-    cur: psycopg2.cursor = field(init=False) 
+    conn: connection = field(init=False) 
+    cur: cursor = field(init=False) 
 
 
     def __enter__(self):
