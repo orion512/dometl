@@ -5,9 +5,7 @@ Author: Dominik Zulovec Sajovic, November 2022
 """
 
 import os
-from dataclasses import dataclass, field
-import yaml
-import psycopg2
+from dataclasses import dataclass
 
 from dometl.db_utils import DBCreds, DBHandler
 
@@ -30,14 +28,20 @@ class ETLRunner():
         with DBHandler(self.db_credentials) as cur:
             cur.execute(query)
 
-    def handle_staging(self, path: str, table_name: str):
+    def handle_staging(self, path: str, table_name: str) -> int:
         """ runs run_staging if path is a file or a dir """
+        self._delete_from(table_name)
+
         if os.path.isdir(path):
             for file in os.listdir(path):
                 full_file_path = os.path.join(path, file)
                 self.run_staging(full_file_path, table_name)
+            return len(os.listdir(path))
         elif os.path.isfile(path):
             self.run_staging(path, table_name)
+            return 1
+        else:
+            raise ValueError("The path needs to be either a file or a dir")
 
 
     def run_staging(self, file_path: str, table_name: str) -> int:
@@ -45,7 +49,13 @@ class ETLRunner():
 
         with DBHandler(self.db_credentials) as cur:
             with open(file_path, "r") as f:
+                next(f) # ignores the first row (header)
                 cur.copy_from(f, table_name, sep=',')
+
+    def _delete_from(self, table_name: str):
+        """ deletes all rows from table name """
+        with DBHandler(self.db_credentials) as cur:
+            cur.execute(f"DELETE FROM {table_name};")
 
 
     def _collect_queries():

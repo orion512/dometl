@@ -1,4 +1,4 @@
-CREATE TABLE "ST_GAME" 
+CREATE TABLE IF NOT EXISTS st_game
 (
     "home_team"	TEXT,
     "away_team"	TEXT,

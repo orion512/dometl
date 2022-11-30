@@ -117,7 +117,7 @@ def run_etl_manager(settings: Settings) -> list:
     return etl_modes[settings.in_line.type](settings)
 
 
-def run_etl_init(settings: Settings) -> list:
+def run_etl_init(settings: Settings):
     """ This function orchestrates the initialization of the ETL """
 
     logger.info("ETL INIT MODE")
@@ -130,12 +130,23 @@ def run_etl_init(settings: Settings) -> list:
     etl_runner = ETLRunner(init_config.db_credentials)
     queries = [init_config.sqls[name] for name in init_config.init_order]
     etl_runner.run_queries(queries)
-    logger.info(f"Initialization done: ({len(init_config.init_order)})")
+    logger.info(f"Finished Initialization: ({len(init_config.init_order)})")
 
 
-def run_etl_stage():
-    """This function runs the ETL with Change Data Capture"""
-    raise NotImplementedError
+def run_etl_stage(settings: Settings):
+    """This function runs the ETL staging step"""
+
+    logger.info("ETL STAGE MODE")
+
+    # 1. Read Init Config
+    init_config = DometlConfig(settings.in_line.config_path)
+    logger.info(f"Read the init config")
+
+    # 2. Run the staging for the passed parameters
+    etl_runner = ETLRunner(init_config.db_credentials)
+    num_files = etl_runner.handle_staging(
+        settings.in_line.extract_path, settings.in_line.table)
+    logger.info(f"Finished staging of {num_files} files")
 
 
 def run_etl_live():

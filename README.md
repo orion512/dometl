@@ -25,6 +25,14 @@ dometl -t init -cp dometl_config
 # python -c "from dometl import run_dometl; run_dometl()" -t init -cp dometl_config
 ```
 
+Run the staging step
+```
+dometl -t stage -ep datasets\\game_data\\daily\\20221105_g.csv -tb ST_GAME -cp dometl_config
+# if you don't install the package
+# python -c "from dometl import run_dometl; run_dometl()" -t stage -ep datasets\\game_data\\daily\\20221105_g.csv -tb st_game -cp dometl_config
+# python -c "from dometl import run_dometl; run_dometl()" -t stage -ep datasets\\game_data\\seasons -tb st_game -cp dometl_config
+```
+
 ## Configuration Folder
 
 ```
