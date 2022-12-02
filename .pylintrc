@@ -1,0 +1,16 @@
+[MAIN]
+ignore=venv, build
+
+[MESSAGES CONTROL]
+disable=fixme,too-few-public-methods,logging-fstring-interpolation
+
+[FORMAT]
+max-line-length=79
+
+[BASIC]
+
+# Good variable names which should always be accepted, separated by a comma
+good-names=p,td,tr,a,
+
+[TYPECHECK]
+ignored-modules=psycopg2._psycopg

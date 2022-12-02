@@ -40,7 +40,7 @@ def run_dometl() -> None:
             live - staging to live SQL transformation
         )
         """,
-        choices=["init", "stage", "live"],
+        choices=["init", "stage", "live", "test"],
         type=str,
     )
 
@@ -50,7 +50,6 @@ def run_dometl() -> None:
         help="""
         path to the folder from where to extract the data.
         """,
-        default="",
         type=str,
     )
 
@@ -60,7 +59,6 @@ def run_dometl() -> None:
         help="""
         Name of the database table into which to load the data.
         """,
-        default=None,
         type=str,
     )
 
@@ -86,7 +84,7 @@ def main(args: argparse.Namespace) -> None:
         type=args.type,
         extract_path=args.extract_path,
         table=args.table,
-        config_path=args.config_path
+        config_path=args.config_path,
     )
 
     settings = Settings(in_line=in_line)
@@ -95,6 +93,7 @@ def main(args: argparse.Namespace) -> None:
 
 
 ## ETL Functions
+
 
 def run_etl_manager(settings: Settings) -> list:
     """This function runs the selected mode of etl"""
@@ -105,6 +104,7 @@ def run_etl_manager(settings: Settings) -> list:
         "init": run_etl_init,
         "stage": run_etl_stage,
         "live": run_etl_live,
+        "test": run_etl_test,
     }
 
     if settings.in_line.type not in etl_modes:
@@ -118,13 +118,13 @@ def run_etl_manager(settings: Settings) -> list:
 
 
 def run_etl_init(settings: Settings):
-    """ This function orchestrates the initialization of the ETL """
+    """This function orchestrates the initialization of the ETL"""
 
     logger.info("ETL INIT MODE")
 
     # 1. Read Init Config
     init_config = DometlConfig(settings.in_line.config_path)
-    logger.info(f"Read the init config")
+    logger.info("Read the init config")
 
     # 2. Run the init order queries
     etl_runner = ETLRunner(init_config.db_credentials)
@@ -140,15 +140,34 @@ def run_etl_stage(settings: Settings):
 
     # 1. Read Init Config
     init_config = DometlConfig(settings.in_line.config_path)
-    logger.info(f"Read the init config")
+    logger.info("Read the init config")
 
     # 2. Run the staging for the passed parameters
     etl_runner = ETLRunner(init_config.db_credentials)
     num_files = etl_runner.handle_staging(
-        settings.in_line.extract_path, settings.in_line.table)
+        settings.in_line.extract_path, settings.in_line.table
+    )
     logger.info(f"Finished staging of {num_files} files")
 
 
-def run_etl_live():
+def run_etl_live(settings: Settings):
     """This function runs the ETL to transform ST to live with SQL"""
+
+    logger.info("ETL LIVE MODE")
+
+    # 1. Read Init Config
+    init_config = DometlConfig(settings.in_line.config_path)
+    logger.info("Read the init config")
+
+    # 2. Run live transformations for the table requested
+    etl_runner = ETLRunner(init_config.db_credentials)
+    table_query = init_config.sqls[init_config.etl[settings.in_line.table]]
+    rows = etl_runner.run_query(table_query)
+    logger.info(
+        f"Finished for table {settings.in_line.table} ({rows} rows affected)"
+    )
+
+
+def run_etl_test():
+    """This function runs the tests for the ETL"""
     raise NotImplementedError

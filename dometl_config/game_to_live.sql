@@ -101,4 +101,5 @@ SELECT
     CASE WHEN pu.game_url IS NULL THEN 0 ELSE 1 END AS is_playoff,
     CASE WHEN home_pts > away_pts THEN 1 ELSE 0 END AS result
 FROM st_game sg
-LEFT JOIN st_playoff_url pu ON sg.game_url = pu.game_url;
+LEFT JOIN st_playoff_url pu ON sg.game_url = pu.game_url
+ON CONFLICT (game_id) DO NOTHING;

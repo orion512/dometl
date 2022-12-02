@@ -13,14 +13,14 @@ from dometl.db_utils import DBCreds
 
 
 @dataclass
-class DometlConfig():
+class DometlConfig:
     """Class for reading and parsing the ETL configurations"""
 
     config_path: str
-    db_credentials: DBCreds = field(init=False) 
-    init_order: list[str] = field(init=False) 
-    etl: dict[str, str] = field(init=False) 
-    sqls: dict[str, str] = field(init=False) 
+    db_credentials: DBCreds = field(init=False)
+    init_order: list[str] = field(init=False)
+    etl: dict[str, str] = field(init=False)
+    sqls: dict[str, str] = field(init=False)
 
     def __post_init__(self):
         """
@@ -31,9 +31,9 @@ class DometlConfig():
 
         config_yaml_path = os.path.join(self.config_path, "config.yaml")
 
-        with open(config_yaml_path, 'r') as yaml_file:
+        with open(config_yaml_path, "r", encoding="UTF-8") as yaml_file:
             read_config = yaml.safe_load(yaml_file)
-        
+
         db_creds = read_config["db_credentials"]
         self.db_credentials = DBCreds(**db_creds)
 
@@ -50,7 +50,7 @@ class DometlConfig():
         """
         return os.listdir(self.config_path)
 
-    def _is_sql(self, some_str: str) -> list:
+    def _is_sql(self, some_str: str) -> bool:
         """
         returns true if the file has .sql extension
         """
@@ -65,7 +65,7 @@ class DometlConfig():
         """
         path_to_file = os.path.join(self.config_path, file)
 
-        with open(path_to_file, "r") as file:
-            return_val = file.read()
-        
+        with open(path_to_file, "r", encoding="UTF-8") as read_file:
+            return_val = read_file.read()
+
         return return_val
