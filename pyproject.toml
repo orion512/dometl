@@ -1,0 +1,59 @@
+[build-system]
+requires = [
+  "setuptools",
+  "wheel",
+  ]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "dometl"
+version = "0.0.1"
+authors = [
+  {name="Dominik Zulovec Sajovic", email="dominik.zsajovic@gmail.com"},
+]
+keywords = ["basketball", "web scraper", "python"]
+description = "............"
+readme = "README.md"
+license = {file="LICENSE"}
+requires-python = ">=3.9"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+]
+dependencies = [
+]
+
+[project.urls]
+"Homepage" = "https://github.com/orion512/dometl"
+
+[project.scripts]
+dometl = "dometl:run_dometl"
+
+[tool.black]
+line-length = 79
+target-version = ['py39']
+exclude = '''
+/(
+  \.toml
+  |\.sh
+  |\.git
+  |\.ini
+  |venv
+  |scripts
+)/
+'''
+
+[tool.setuptools.packages.find]
+include = ["baskref"]
+exclude = ["notebooks*"]
+
+[tool.mypy]
+ignore_missing_imports = true
+
+[tool.check-manifest]
+ignore = [
+  ".travis.yml", "tests/*", "requirements_dev.txt",
+  "datasets", ".pre-commit-config.yaml", ".pylintrc", "pytest.ini",
+  "venv", 
+  ]
