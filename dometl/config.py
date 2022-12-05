@@ -20,6 +20,7 @@ class DometlConfig:
     db_credentials: DBCreds = field(init=False)
     init_order: list[str] = field(init=False)
     etl: dict[str, str] = field(init=False)
+    tests: dict[str, list[str]] = field(init=False)
     sqls: dict[str, str] = field(init=False)
 
     def __post_init__(self):
@@ -39,10 +40,21 @@ class DometlConfig:
 
         self.init_order = read_config["init_order"]
         self.etl = read_config["etl"]
+        self.tests = read_config["tests"]
 
         self.sqls = {}
         for sql_file in filter(self._is_sql, self._files()):
             self.sqls[sql_file] = self._file_contents(sql_file)
+
+    def get_test_queries(self, table_name: str) -> list:
+        """ return a list of sql test queries for a specific table """
+
+        res_list = []
+
+        for query_name in self.tests[table_name]:
+            res_list.append((query_name, self.sqls[query_name]))
+
+        return res_list
 
     def _files(self) -> list:
         """

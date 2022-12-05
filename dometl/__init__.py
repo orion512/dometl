@@ -168,6 +168,19 @@ def run_etl_live(settings: Settings):
     )
 
 
-def run_etl_test():
+def run_etl_test(settings: Settings):
     """This function runs the tests for the ETL"""
-    raise NotImplementedError
+
+    logger.info("ETL TEST MODE")
+
+    # 1. Read Init Config
+    init_config = DometlConfig(settings.in_line.config_path)
+    test_queries = init_config.get_test_queries(settings.in_line.table)
+    logger.info(f"Read the init config ({len(test_queries)} test queries)")
+
+    # 2. Run live transformations for the table requested
+    etl_runner = ETLRunner(init_config.db_credentials)
+    etl_runner.run_tests(test_queries)
+    logger.info(
+        f"{len(test_queries)} tests for {settings.in_line.table} passed!"
+    )

@@ -15,6 +15,10 @@ dometl -t stage
 ```
 dometl -t live
 ```
+4. Test - Runs very simple tests on the data
+```
+dometl -t test
+```
 
 # How to Install & Run the Package?
 
@@ -39,6 +43,25 @@ dometl -t live -tb game -cp dometl_config
 # if you don't install the package
 # python -c "from dometl import run_dometl; run_dometl()" -t live -tb game -cp dometl_config
 ```
+
+Run the test step
+```
+dometl -t test -tb game -cp dometl_config
+# if you don't install the package
+# python -c "from dometl import run_dometl; run_dometl()" -t test -tb game -cp dometl_config
+```
+The simple testing is made up of testing queries which are placed into the
+config.yaml folder like below
+```
+tests:
+  table_name: ["some_test.sql", "other_test.sql"]
+```
+Each table can have a set of test queries.
+The queries need to be written in a way that they return 0 rows when the
+test passes. If the query returns more than 0 rows the test will fail.
+As a suggestion the rows that are returned should help find the root
+cause of the failure.
+
 
 ## Configuration Folder
 
