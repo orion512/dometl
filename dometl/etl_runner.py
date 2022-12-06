@@ -4,14 +4,19 @@ This page contains the class which is used to run queries
 Author: Dominik Zulovec Sajovic, November 2022
 """
 
+import sys
 import os
 import logging
 from dataclasses import dataclass
 
 from dometl.db_utils import DBCreds, DBHandler
-from dometl.exceptions import DataTestError
 
 logger = logging.getLogger(__name__)
+
+GREEN = "\033[92m"
+RED = "\033[91m"
+END = "\033[0m"
+
 
 @dataclass
 class ETLRunner:
@@ -70,19 +75,35 @@ class ETLRunner:
     def run_tests(self, test_queries: list[tuple]):
         """runs multiple test"""
 
+        all_pass = 0
+
         for query_name, query in test_queries:
             logger.info(f"Running test {query_name}")
-            self.run_test(query)
+            status = self.run_test(query, stand_alone=False)
+            all_pass += status
 
+        sys.exit(int(all_pass > 0))
 
-    def run_test(self, query: str):
+    def run_test(self, query: str, stand_alone: bool = True):
         """runs a single test query"""
 
         res = self.run_select_query(query)
-        
-        if len(res) > 0:
-            raise DataTestError(res)
-    
+
+        passed = len(res) == 0
+
+        if passed:
+            logger.info(f"{GREEN}Test Passed{END}")
+            if stand_alone:
+                sys.exit(0)
+            else:
+                return 0
+        else:
+            logger.info(f"{RED}Test Failed{END}")
+            logger.info(f"{RED}{res}{END}")
+            if stand_alone:
+                sys.exit(1)
+            else:
+                return 1
 
     def _delete_from(self, table_name: str):
         """deletes all rows from table name"""

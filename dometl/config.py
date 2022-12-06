@@ -47,7 +47,7 @@ class DometlConfig:
             self.sqls[sql_file] = self._file_contents(sql_file)
 
     def get_test_queries(self, table_name: str) -> list:
-        """ return a list of sql test queries for a specific table """
+        """return a list of sql test queries for a specific table"""
 
         res_list = []
 
