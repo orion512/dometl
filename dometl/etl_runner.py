@@ -75,35 +75,32 @@ class ETLRunner:
     def run_tests(self, test_queries: list[tuple]):
         """runs multiple test"""
 
-        all_pass = 0
+        num_passed = 0
+        num_tests = len(test_queries)
 
-        for query_name, query in test_queries:
-            logger.info(f"Running test {query_name}")
-            status = self.run_test(query, stand_alone=False)
-            all_pass += status
+        for idx, (_, query) in enumerate(test_queries):
+            status = self.run_test(query, f"#{idx}")
+            num_passed += int(status)
 
-        sys.exit(int(all_pass > 0))
+        exit_code = int(~(num_passed == num_tests))
+        col = RED if exit_code else GREEN
+        logger.info("--------------------")
+        logger.info(f"{col}Testing Outcome: {num_passed}/{num_tests}{END}")
 
-    def run_test(self, query: str, stand_alone: bool = True):
+        sys.exit(exit_code)
+
+    def run_test(self, query: str, test_name: str) -> bool:
         """runs a single test query"""
 
         res = self.run_select_query(query)
-
         passed = len(res) == 0
 
         if passed:
-            logger.info(f"{GREEN}Test Passed{END}")
-            if stand_alone:
-                sys.exit(0)
-            else:
-                return 0
-        else:
-            logger.info(f"{RED}Test Failed{END}")
-            logger.info(f"{RED}{res}{END}")
-            if stand_alone:
-                sys.exit(1)
-            else:
-                return 1
+            logger.info(f"{GREEN}Test {test_name} Passed :){END}")
+            return True
+
+        logger.info(f"{RED}Test {test_name} Failed :( {res}{END}")
+        return False
 
     def _delete_from(self, table_name: str):
         """deletes all rows from table name"""

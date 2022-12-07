@@ -35,8 +35,11 @@ class DometlConfig:
         with open(config_yaml_path, "r", encoding="UTF-8") as yaml_file:
             read_config = yaml.safe_load(yaml_file)
 
-        db_creds = read_config["db_credentials"]
-        self.db_credentials = DBCreds(**db_creds)
+        creds_path = read_config["credentials_path"]
+
+        with open(creds_path, "r", encoding="UTF-8") as yaml_file:
+            db_creds = yaml.safe_load(yaml_file)
+        self.db_credentials = DBCreds(**db_creds["db_credentials"])
 
         self.init_order = read_config["init_order"]
         self.etl = read_config["etl"]

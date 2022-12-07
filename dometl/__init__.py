@@ -181,6 +181,3 @@ def run_etl_test(settings: Settings):
     # 2. Run live transformations for the table requested
     etl_runner = ETLRunner(init_config.db_credentials)
     etl_runner.run_tests(test_queries)
-    logger.info(
-        f"{len(test_queries)} tests for {settings.in_line.table} passed!"
-    )

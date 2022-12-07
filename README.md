@@ -78,12 +78,7 @@ cause of the failure.
 
 Structure for config.yaml
 ```
-db_credentials:
-  username: ""
-  password: ""
-  hostname: ""
-  port: ""
-  db_name: ""
+credentials_path: "path/to/creds.yaml"
 
 init_order: [
   "db_create.sql",
@@ -97,6 +92,16 @@ etl:
   table_name_3: "file5.sql"  
 ```
 
+Structure for the creds.yaml
+```
+db_credentials:
+  username: ""
+  password: ""
+  hostname: ""
+  port: ""
+  db_name: ""
+```
+
 ## Bonus
 
 Run a script with psql
@@ -106,5 +111,5 @@ psql -U postgres -h 127.0.0.1 -d DBNAME -f path\path\file_name.sql
 
 Copy CSV into a table
 ```
-psql -U postgres -h 127.0.0.1 -d DBNAME -c "COPY table_name FROM '/path/to/csv/20221105_g.csv' WITH (FORMAT csv)"
+psql -U postgres -h 127.0.0.1 -d DBNAME -c "COPY table_name FROM '/'some_name.csv' WITH (FORMAT csv)"
 ```
