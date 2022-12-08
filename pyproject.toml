@@ -12,7 +12,7 @@ authors = [
   {name="Dominik Zulovec Sajovic", email="dominik.zsajovic@gmail.com"},
 ]
 keywords = ["etl", "csv", "postgres", "python"]
-description = "............"
+description = "Simple python ETL tool."
 readme = "README.md"
 license = {file="LICENSE"}
 requires-python = ">=3.9"
