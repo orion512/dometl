@@ -1,9 +1,4 @@
-db_credentials:
-  username: ""
-  password: ""
-  hostname: ""
-  port: ""
-  db_name: ""
+credentials_path: ""
 
 init_order: [
   "table_1_st_create.sql",
