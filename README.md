@@ -15,6 +15,10 @@ dometl -t stage
 ```
 dometl -t live
 ```
+4. Test - Runs very simple tests on the data
+```
+dometl -t test
+```
 
 # How to Install & Run the Package?
 
@@ -40,6 +44,25 @@ dometl -t live -tb game -cp dometl_config
 # python -c "from dometl import run_dometl; run_dometl()" -t live -tb game -cp dometl_config
 ```
 
+Run the test step
+```
+dometl -t test -tb game -cp dometl_config
+# if you don't install the package
+# python -c "from dometl import run_dometl; run_dometl()" -t test -tb game -cp dometl_config
+```
+The simple testing is made up of testing queries which are placed into the
+config.yaml folder like below
+```
+tests:
+  table_name: ["some_test.sql", "other_test.sql"]
+```
+Each table can have a set of test queries.
+The queries need to be written in a way that they return 0 rows when the
+test passes. If the query returns more than 0 rows the test will fail.
+As a suggestion the rows that are returned should help find the root
+cause of the failure.
+
+
 ## Configuration Folder
 
 ```
@@ -55,12 +78,7 @@ dometl -t live -tb game -cp dometl_config
 
 Structure for config.yaml
 ```
-db_credentials:
-  username: ""
-  password: ""
-  hostname: ""
-  port: ""
-  db_name: ""
+credentials_path: "path/to/creds.yaml"
 
 init_order: [
   "db_create.sql",
@@ -74,6 +92,16 @@ etl:
   table_name_3: "file5.sql"  
 ```
 
+Structure for the creds.yaml
+```
+db_credentials:
+  username: ""
+  password: ""
+  hostname: ""
+  port: ""
+  db_name: ""
+```
+
 ## Bonus
 
 Run a script with psql
@@ -83,5 +111,5 @@ psql -U postgres -h 127.0.0.1 -d DBNAME -f path\path\file_name.sql
 
 Copy CSV into a table
 ```
-psql -U postgres -h 127.0.0.1 -d DBNAME -c "COPY table_name FROM '/path/to/csv/20221105_g.csv' WITH (FORMAT csv)"
+psql -U postgres -h 127.0.0.1 -d DBNAME -c "COPY table_name FROM '/'some_name.csv' WITH (FORMAT csv)"
 ```

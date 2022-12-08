@@ -11,7 +11,7 @@ version = "0.0.1"
 authors = [
   {name="Dominik Zulovec Sajovic", email="dominik.zsajovic@gmail.com"},
 ]
-keywords = ["basketball", "web scraper", "python"]
+keywords = ["etl", "csv", "postgres", "python"]
 description = "............"
 readme = "README.md"
 license = {file="LICENSE"}
@@ -22,6 +22,8 @@ classifiers = [
     "Operating System :: OS Independent",
 ]
 dependencies = [
+  "psycopg2==2.9.5",
+  "PyYAML==6.0",
 ]
 
 [project.urls]
@@ -45,8 +47,8 @@ exclude = '''
 '''
 
 [tool.setuptools.packages.find]
-include = ["baskref"]
-exclude = ["notebooks*"]
+include = ["dometl"]
+exclude = ["dometl_config*"]
 
 [tool.mypy]
 ignore_missing_imports = true

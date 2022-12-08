@@ -1,0 +1,22 @@
+db_credentials:
+  username: ""
+  password: ""
+  hostname: ""
+  port: ""
+  db_name: ""
+
+init_order: [
+  "table_1_st_create.sql",
+  "table_1_create.sql",
+  "table_2_st_create.sql",
+  "table_2_create.sql"
+]
+
+etl:
+  table_1: "table_1_to_live.sql"
+
+tests:
+  table_1: [
+    "table_1_test_1.sql",
+    "table_1_test_2.sql"
+    ]
